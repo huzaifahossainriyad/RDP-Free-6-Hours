@@ -14,7 +14,7 @@ jobs:
     - name: Setup Windows RDP
       run: |
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -name "fDenyTSConnections" -Value 0
-        Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+        Enable-NetFireallRule -DisplayGroup "Remote Desktop"
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
         copy wallpaper.bat D:\a\wallpaper.bat
 
@@ -26,7 +26,8 @@ jobs:
       env:
         TS_AUTHKEY: ${{ secrets.TS_AUTHKEY }}
       run: |
-        & "C:\Program Files\Tailscale\tailscale.exe" up --authkey="%TS_AUTHKEY%"
+        # Using the more reliable PowerShell variable syntax
+        & "C:\Program Files\Tailscale\tailscale.exe" up --authkey="$env:TS_AUTHKEY"
 
     - name: Get Tailscale IP Address
       id: tailscale_ip
