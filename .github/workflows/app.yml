@@ -19,11 +19,8 @@ jobs:
         copy wallpaper.bat D:\a\wallpaper.bat
 
     # --- Tailscale Steps Start Here ---
-    - name: Install Tailscale
-      run: |
-        # Changed Invoke-WebRequest to curl for better reliability
-        curl -o tailscale-setup.exe https://pkgs.tailscale.com/stable/tailscale-setup-stable.exe
-        Start-Process -FilePath ".\tailscale-setup.exe" -ArgumentList "/S" -Wait
+    - name: Install Tailscale using Chocolatey
+      run: choco install tailscale --yes
     
     - name: Connect to Tailscale
       env:
