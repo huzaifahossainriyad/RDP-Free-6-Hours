@@ -21,7 +21,8 @@ jobs:
     # --- Tailscale Steps Start Here ---
     - name: Install Tailscale
       run: |
-        Invoke-WebRequest -Uri "https://pkgs.tailscale.com/stable/tailscale-setup-stable.exe" -OutFile "tailscale-setup.exe"
+        # Changed Invoke-WebRequest to curl for better reliability
+        curl -o tailscale-setup.exe https://pkgs.tailscale.com/stable/tailscale-setup-stable.exe
         Start-Process -FilePath ".\tailscale-setup.exe" -ArgumentList "/S" -Wait
     
     - name: Connect to Tailscale
