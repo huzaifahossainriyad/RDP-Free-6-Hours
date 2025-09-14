@@ -5,28 +5,41 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 9999
     steps:
-    - name: Download Ngrok.
+    - name: Download startup files
       run: |
-        Invoke-WebRequest https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-windows-amd64.zip -OutFile ngrok.zip
         Invoke-WebRequest https://raw.githubusercontent.com/Harchanel15/insyaallah-gak-ke-banned-akun-kalian/main/start.bat -OutFile start.bat
         Invoke-WebRequest https://raw.githubusercontent.com/Harchanel15/insyaallah-gak-ke-banned-akun-kalian/main/wallpaper.bat -OutFile wallpaper.bat
         Invoke-WebRequest https://raw.githubusercontent.com/Harchanel15/insyaallah-gak-ke-banned-akun-kalian/main/loop.bat -OutFile loop.bat
-        Invoke-WebRequest https://raw.githubusercontent.com/Harchanel15/insyaallah-gak-ke-banned-akun-kalian/main/start.bat -OutFile push.bat
-    - name: Extract Ngrok File.
-      run: Expand-Archive ngrok.zip
-    - name: Connect Ngrok.
-      run: .\ngrok\ngrok.exe authtoken $Env:NGROK_AUTH_TOKEN
-      env:
-        NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
-    - name: Windows10 RDP.
+
+    - name: Setup Windows RDP
       run: |
-        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server'-name "fDenyTSConnections" -Value 0
+        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -name "fDenyTSConnections" -Value 0
         Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
         copy wallpaper.bat D:\a\wallpaper.bat
-    - name: Tunnel.
-      run: Start-Process Powershell -ArgumentList '-Noexit -Command ".\ngrok\ngrok.exe tcp --region ap 3389"'
-    - name: Connect RDP.
+
+    # --- Tailscale Steps Start Here ---
+    - name: Install Tailscale
+      run: |
+        Invoke-WebRequest -Uri "https://pkgs.tailscale.com/stable/tailscale-setup-stable.exe" -OutFile "tailscale-setup.exe"
+        Start-Process -FilePath ".\tailscale-setup.exe" -ArgumentList "/S" -Wait
+    
+    - name: Connect to Tailscale
+      env:
+        TS_AUTHKEY: ${{ secrets.TS_AUTHKEY }}
+      run: |
+        & "C:\Program Files\Tailscale\tailscale.exe" up --authkey="%TS_AUTHKEY%"
+
+    - name: Get Tailscale IP Address
+      id: tailscale_ip
+      run: |
+        $ip = & "C:\Program Files\Tailscale\tailscale.exe" ip -4
+        echo "Tailscale IP: $ip"
+        echo "ip=$ip" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+    # --- Tailscale Steps End Here ---
+
+    - name: Start RDP setup
       run: cmd /c start.bat
-    - name: win10 RDP.
+
+    - name: Keep session alive
       run: cmd /c loop.bat
