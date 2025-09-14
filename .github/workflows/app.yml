@@ -16,7 +16,8 @@ jobs:
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -name "fDenyTSConnections" -Value 0
         Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
         netsh advfirewall firewall add rule name="Allow RDP Port 3389" dir=in action=allow protocol=TCP localport=3389
-        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
+        # Disabling Network Level Authentication (NLA) as the final troubleshooting step
+        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 0
         copy wallpaper.bat D:\a\wallpaper.bat
 
     # --- Tailscale Steps Start Here ---
